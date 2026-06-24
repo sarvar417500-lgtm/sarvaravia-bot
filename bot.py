@@ -1,4 +1,4 @@
-import telebot
+﻿import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import random
 from datetime import datetime, date
@@ -532,6 +532,30 @@ def handle_callback(call):
         show_cars(cid, sess)
 
 # ── Ishga tushirish ───────────────────────────────────────────────────────────
+from flask import Flask, request as freq
+import os
+
+app = Flask(__name__)
+
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    import json
+    update = telebot.types.Update.de_json(freq.get_data().decode('utf-8'))
+    bot.process_new_updates([update])
+    return 'OK', 200
+
+@app.route('/')
+def health():
+    return 'sarvaravia_bot ishlayapti!', 200
+
 if __name__ == "__main__":
-    print("sarvaravia_bot ishga tushdi (server rejimi)...")
-    bot.infinity_polling()
+    WEBHOOK_URL = os.environ.get('WEBHOOK_URL', '')
+    if WEBHOOK_URL:
+        bot.remove_webhook()
+        bot.set_webhook(url=f'{WEBHOOK_URL}/{TOKEN}')
+        print(f"Webhook: {WEBHOOK_URL}/{TOKEN}")
+        port = int(os.environ.get('PORT', 10000))
+        app.run(host='0.0.0.0', port=port)
+    else:
+        print("sarvaravia_bot ishga tushdi (polling)...")
+        bot.infinity_polling()
